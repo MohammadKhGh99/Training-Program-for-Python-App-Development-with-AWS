@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lugrasimo&display=swap" rel="stylesheet">
+    <title>Weather Forecast</title>
+</head>
+
+<style>
+  .lugrasimo-regular {
+    font-family: "Lugrasimo", cursive;
+    font-weight: 400;
+    font-style: normal;
+  }
+
+  #container, #location-input-field {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    text-align: center;
+  }
+
+  button {
+    cursor: pointer;
+    transition-duration: 0.5s;
+    padding: 10px;
+  }
+
+  button:hover {
+    box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
+  }
+  
+</style>
+
+<body>
+  <div id="container">
+    <h1 class="lugrasimo-regular" style="text-decoration: underline;">
+      Weather Forecast
+    </h1>
+    <h4>
+      You can check Weather Forecast by entering the wanted location
+    </h4>
+    <div id="location-input-field">
+      <form method="post">
+        <label for="location">
+          Enter Location:
+        </label>
+        <input type="text" id="location" name="location" placeholder="Enter Location" required>
+        <br><br>
+        <button type="submit">
+          Check Weather
+        </button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>
