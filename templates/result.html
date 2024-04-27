@@ -6,6 +6,8 @@
     <title>Weather Forecast</title>
 </head>
 <body>
-    
+  <h1>{{cur_weather}}</h1>
+  <img src="{{url_for('static', filename=hourly_image)}}">
+  <img src="{{url_for('static', filename=daily_image)}}">
 </body>
 </html>
