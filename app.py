@@ -13,7 +13,8 @@ app = Flask(__name__)
 app.secret_key = "alsndbgiujdjfk[qekf;dsk]"
 app.config["DEBUG"] = True
 
-api_key = "72bf6eb2246493bb869d99a07ad80220"
+weather_api_key = "72bf6eb2246493bb869d99a07ad80220"
+
 
 @app.route("/")
 def index():
@@ -50,7 +51,7 @@ def result():
 
 
 def get_lat_lon(location):
-    lat_lon_url = f"http://api.openweathermap.org/geo/1.0/direct?q={location}&limit=5&appid={api_key}"
+    lat_lon_url = f"http://api.openweathermap.org/geo/1.0/direct?q={location}&limit=5&appid={weather_api_key}"
     response = requests.get(lat_lon_url)
     data = response.json()
     return data[0]["lat"], data[0]["lon"]
@@ -58,7 +59,7 @@ def get_lat_lon(location):
 
 def get_weather_data(location):
     lat, lon = get_lat_lon(location)
-    weather_url = f"https://api.openweathermap.org/data/3.0/onecall?lat={lat}&lon={lon}&units=metric&appid={api_key}"
+    weather_url = f"https://api.openweathermap.org/data/3.0/onecall?lat={lat}&lon={lon}&units=metric&appid={weather_api_key}"
     response = requests.get(weather_url)
     data = response.json()
     return data
