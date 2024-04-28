@@ -4,6 +4,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib
 import datetime
+import mpld3
+import plotly.graph_objects as go
+import numpy as np
 
 matplotlib.use('Agg')
 app = Flask(__name__)
@@ -12,19 +15,38 @@ app.config["DEBUG"] = True
 
 api_key = "72bf6eb2246493bb869d99a07ad80220"
 
-@app.route("/", methods=["GET", "POST"])
+@app.route("/")
+def index():
+    return redirect(url_for("home"))
+
+fig_html = ""
+
+@app.route("/check_weather", methods=["GET", "POST"])
 def home():
     if request.method == "POST":
         location = request.form["location"]
         data = get_weather_data(location)
         log_data(data)
-        current, hourly_df, daily_df, daily_days, weekday_dict = process_data(data)
-        save_trends_images(current, hourly_df, daily_df, daily_days, weekday_dict)
-        cur_weather = f"current weather\ntime: {datetime.datetime.now().time().strftime("%H:%M")} temperature: {current["temp"]}"
+        current, hourly_df, daily_df, daily_days, weekday, cur_date = process_data(data)
+        global fig_html
+        fig_html = save_trends_images(hourly_df, daily_df, daily_days, weekday, cur_date)
+        cur_time = f"time: {datetime.datetime.now().strftime("[%d-%m-%Y] %H:%M")} {weekday}"
+        cur_temp = f"temperature: {current["temp"]} \u00b0C"
         hourly_image = "hourly-weather.png"
         daily_image = "daily-weather.png"
-        return render_template("result.html", cur_weather=cur_weather, hourly_image=hourly_image, daily_image=daily_image)
+        return redirect(url_for("result", cur_time=cur_time, cur_temp=cur_temp, hourly_image=hourly_image, daily_image=daily_image, location=location))
     return render_template("home.html")
+
+
+@app.route("/weather_forecast_results")
+def result():
+    cur_time = request.args.get("cur_time")
+    cur_temp = request.args.get("cur_temp")
+    hourly_image = request.args.get("hourly_image")
+    daily_image = request.args.get("daily_image")
+    location = request.args.get("location")
+    # fig_html = request.args.get("fig_html")
+    return render_template("result.html", cur_time=cur_time, cur_temp=cur_temp, hourly_image=hourly_image, daily_image=daily_image, location=location)
 
 
 def get_lat_lon(location):
@@ -73,14 +95,12 @@ def process_data(data):
     for i in range(len(daily_days)):
         daily_days[i] += str(daily_df["weekday"][i])
 
-    return current, hourly_df, daily_df, daily_days, weekday_dict
+    cur_date = datetime.datetime.now().date()
+
+    return current, hourly_df, daily_df, daily_days, weekday_dict[(cur_date.weekday() + 2) % 7], cur_date
 
 
-def save_trends_images(current, hourly_df, daily_df, daily_days, weekday_dict):
-
-    # show current weather
-    # print(f"current weather\ntime: {datetime.datetime.now().time().strftime("%H:%M")} temperature: {current["temp"]}")
-
+def save_trends_images(hourly_df, daily_df, daily_days, weekday, cur_date):
     # show hourly weather for the next 24 hours
     temp_hourly = hourly_df["hour"].to_list()
     first = temp_hourly[0]
@@ -93,25 +113,61 @@ def save_trends_images(current, hourly_df, daily_df, daily_days, weekday_dict):
             first = temp_hourly[i]
             ending = first[-5:]
 
-    plt.figure(figsize=(10, 6))
-    plt.plot(temp_hourly[:len(hourly_df["hour"]) // 2], hourly_df['temp'][:len(hourly_df["temp"]) // 2])
+    half_hours = temp_hourly[:len(hourly_df["hour"]) // 2]
+    half_temps = hourly_df['temp'][:len(hourly_df["temp"]) // 2]
+
+    # fig = go.Figure(data=go.Scatter(x=half_hours, y=half_temps, mode='markers+lines', 
+    #                             text=[f'({x}, {y})' for x, y in zip(half_hours, half_temps)], 
+    #                             hoverinfo='text'))
+
+    # fig.update_layout(title=f"Hourly Temperature Trends - Today {cur_date} {weekday}",
+    #                 xaxis_title="Time",
+    #                 yaxis_title="Temp (Celsius)")
+
+    # fig_html = fig.to_html(full_html=False)
+
+    plt.figure(figsize=(15, 7))
+    fig, ax = plt.subplots()
+    
+    # ax.plot([3,1,4,1,5], 'ks-', mec='w', mew=5, ms=20)
+    plt.plot(half_hours, half_temps)
+    plt.scatter(half_hours, half_temps, color='red')
+    for i, txt in enumerate(half_temps):
+        plt.text(half_hours[i], half_temps[i], f'({half_hours[i]}, {txt})', fontsize=7)
     plt.xlabel("Time")
     plt.ylabel("Temp (Celsius)")
-    cur_date = datetime.datetime.now().date()
-    plt.title(f"Hourly Temperature Trends - Today {cur_date} {weekday_dict[(cur_date.weekday() + 2) % 7]}")
+    plt.title(f"Hourly Temperature Trends - Today {cur_date} {weekday}")
+    new_arr = []
+    for i in range(0, len(half_hours), 2):
+        new_arr += [half_hours[i]]
+
+    print(new_arr)
+    plt.xticks(new_arr)
+    plt.tight_layout()
     plt.savefig('static/hourly-weather.png')
+    # fig_html = mpld3.fig_to_html(fig)
     plt.close()
 
     # show daily weather for the next 7 days
 
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(15, 7))
     plt.plot(daily_days, daily_df['temp_min'], label="Min Temp")
+    plt.scatter(daily_days, daily_df['temp_min'], color='blue')
+    for i, txt in enumerate(daily_df['temp_min']):
+        plt.text(daily_days[i], daily_df['temp_min'][i], f'({txt})', fontsize=7)
+    
     plt.plot(daily_days, daily_df['temp_max'], label="Max Temp")
+    plt.scatter(daily_days, daily_df['temp_max'], color='red')
+    for i, txt in enumerate(daily_df['temp_max']):
+        plt.text(daily_days[i], daily_df['temp_max'][i], f'({txt})', fontsize=7)
+    
     plt.xlabel("Date")
     plt.ylabel("Temp (Celsius)")
     plt.title("Daily Temperature Trends")
     plt.legend()
     plt.savefig('static/daily-weather.png')
+
+    # return fig_html
 
 
 if __name__ == "__main__":
