@@ -5,9 +5,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib
 import datetime
-import mpld3
-import plotly.graph_objects as go
-import numpy as np
 
 matplotlib.use('Agg')
 app = Flask(__name__)

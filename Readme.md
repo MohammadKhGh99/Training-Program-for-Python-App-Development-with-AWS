@@ -13,10 +13,13 @@ Fetches and logs weather data for specified locations using an external API like
 - [License](#license) -->
 
 ## Installation
-[Provide instructions on how to install and set up your project]
+To install the required dependencies, run the following command:
+    pip install -r requirements.txt
+
 
 ## Usage
-[Provide instructions on how to use your project]
+To run the app, write this command:
+    python app.py
 
 <!-- ## Contributing
 [Explain how others can contribute to your project]
