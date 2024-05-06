@@ -21,17 +21,27 @@ def index():
 
 @app.route("/check_weather", methods=["GET", "POST"])
 def home():
+    # when submitting the location to form
     if request.method == "POST":
+        # get the location from form
         location = request.form["location"]
+        # get the data of weather for the given location
         data = get_weather_data(location)
+        # log the data into csv file
         log_data(data)
-        current, hourly_df, daily_df, daily_days, weekday, cur_date = process_data(data)
+        # precess the data and divide the data into variables
+        current, hourly_df, daily_df, daily_days, weekday, cur_date = (
+            process_data(data))
+        # save the images of the weather trends graphs to use them in html file
         save_trends_images(hourly_df, daily_df, daily_days, weekday, cur_date)
-        cur_time = f"time: {datetime.datetime.now().strftime("[%d-%m-%Y] %H:%M")} {weekday}"
+        cur_time = f"time: {datetime.datetime.now().
+                            strftime("[%d-%m-%Y] %H:%M")} {weekday}"
         cur_temp = f"temperature: {current["temp"]} \u00b0C"
         hourly_image = "hourly-weather.png"
         daily_image = "daily-weather.png"
-        return redirect(url_for("result", cur_time=cur_time, cur_temp=cur_temp, hourly_image=hourly_image, daily_image=daily_image, location=location))
+        return redirect(url_for("result", cur_time=cur_time,
+                                cur_temp=cur_temp, hourly_image=hourly_image,
+                                daily_image=daily_image, location=location))
     return render_template("home.html")
 
 
@@ -42,11 +52,14 @@ def result():
     hourly_image = request.args.get("hourly_image")
     daily_image = request.args.get("daily_image")
     location = request.args.get("location")
-    return render_template("result.html", cur_time=cur_time, cur_temp=cur_temp, hourly_image=hourly_image, daily_image=daily_image, location=location)
+    return render_template("result.html", cur_time=cur_time,
+                           cur_temp=cur_temp, hourly_image=hourly_image,
+                           daily_image=daily_image, location=location)
 
 
 def get_lat_lon(location):
-    lat_lon_url = f"http://api.openweathermap.org/geo/1.0/direct?q={location}&limit=5&appid={weather_api_key}"
+    lat_lon_url = (f"http://api.openweathermap.org/geo/1.0/direct?q={location}"
+                   f"&limit=5&appid={weather_api_key}")
     response = requests.get(lat_lon_url)
     data = response.json()
     return data[0]["lat"], data[0]["lon"]
@@ -54,7 +67,8 @@ def get_lat_lon(location):
 
 def get_weather_data(location):
     lat, lon = get_lat_lon(location)
-    weather_url = f"https://api.openweathermap.org/data/3.0/onecall?lat={lat}&lon={lon}&units=metric&appid={weather_api_key}"
+    weather_url = (f"https://api.openweathermap.org/data/3.0/onecall?lat={lat}"
+                   f"&lon={lon}&units=metric&appid={weather_api_key}")
     response = requests.get(weather_url)
     data = response.json()
     return data
@@ -72,14 +86,18 @@ def process_data(data):
 
     hourly_df['time'] = pd.to_datetime(hourly_df['dt'], unit='s')
     daily_df['time'] = pd.to_datetime(daily_df['dt'], unit='s')
-    
-    weekday_dict = {1: "Sunday", 2: "Monday", 3: "Tuesday", 4: "Wednesday", 5: "Thursday", 6: "Friday", 0: "Saturday"}
 
+    weekday_dict = {1: "Sunday", 2: "Monday", 3: "Tuesday", 4: "Wednesday",
+                    5: "Thursday", 6: "Friday", 0: "Saturday"}
+
+    # divide data to hours, weekdays and days
     hourly_df['hour'] = hourly_df['time'].dt.strftime("%H\n%m-%d")
     daily_df['weekday_num'] = (daily_df["time"].dt.weekday + 2) % 7
     daily_df['weekday'] = daily_df['weekday_num'].map(weekday_dict)
     daily_df['day'] = daily_df['time'].dt.strftime('%m-%d\n')
 
+    # divide the data into temperature during day, night, morning, evening
+    # and the max and min temperature during all the day
     daily_df["temp_day"] = daily_df["temp"].apply(lambda x: x["day"])
     daily_df["temp_night"] = daily_df["temp"].apply(lambda x: x["night"])
     daily_df["temp_min"] = daily_df["temp"].apply(lambda x: x["min"])
@@ -93,7 +111,8 @@ def process_data(data):
 
     cur_date = datetime.datetime.now().date()
 
-    return current, hourly_df, daily_df, daily_days, weekday_dict[(cur_date.weekday() + 2) % 7], cur_date
+    return current, hourly_df, daily_df, daily_days, weekday_dict[
+        (cur_date.weekday() + 2) % 7], cur_date
 
 
 def save_trends_images(hourly_df, daily_df, daily_days, weekday, cur_date):
@@ -101,7 +120,7 @@ def save_trends_images(hourly_df, daily_df, daily_days, weekday, cur_date):
     temp_hourly = hourly_df["hour"].to_list()
     first = temp_hourly[0]
     ending = first[-5:]
-    # keeping the date just when we jump from day to another
+    # keeping the date label just when we jump from day to another
     for i in range(1, len(temp_hourly)):
         if temp_hourly[i].endswith(ending):
             temp_hourly[i] = temp_hourly[i][:-6]
@@ -124,12 +143,13 @@ def save_trends_images(hourly_df, daily_df, daily_days, weekday, cur_date):
 
     plt.figure(figsize=(13, 7))
     # fig, ax = plt.subplots()
-    
+
     # ax.plot([3,1,4,1,5], 'ks-', mec='w', mew=5, ms=20)
     plt.plot(half_hours, half_temps)
     plt.scatter(half_hours, half_temps, color='red')
     for i, txt in enumerate(half_temps):
-        plt.text(half_hours[i], half_temps[i], f'({half_hours[i]}, {txt})', fontsize=7, va="bottom", ha="right")
+        plt.text(half_hours[i], half_temps[i], f'({half_hours[i]}, {txt})',
+                 fontsize=7, va="bottom", ha="right")
     plt.xlabel("Time")
     plt.ylabel("Temp (Celsius)")
     plt.title(f"Hourly Temperature Trends - Today {cur_date} {weekday}")
@@ -151,13 +171,15 @@ def save_trends_images(hourly_df, daily_df, daily_days, weekday, cur_date):
     plt.plot(daily_days, daily_df['temp_min'], label="Min Temp")
     plt.scatter(daily_days, daily_df['temp_min'], color='blue')
     for i, txt in enumerate(daily_df['temp_min']):
-        plt.text(daily_days[i], daily_df['temp_min'][i], f'({txt})', fontsize=7, va="bottom", ha="right")
-    
+        plt.text(daily_days[i], daily_df['temp_min'][i], f'({txt})',
+                 fontsize=7, va="bottom", ha="right")
+
     plt.plot(daily_days, daily_df['temp_max'], label="Max Temp")
     plt.scatter(daily_days, daily_df['temp_max'], color='red')
     for i, txt in enumerate(daily_df['temp_max']):
-        plt.text(daily_days[i], daily_df['temp_max'][i], f'({txt})', fontsize=7, va="bottom", ha="right")
-    
+        plt.text(daily_days[i], daily_df['temp_max'][i], f'({txt})',
+                 fontsize=7, va="bottom", ha="right")
+
     plt.xlabel("Date")
     plt.ylabel("Temp (Celsius)")
     plt.title("Daily Temperature Trends")
