@@ -10,7 +10,7 @@ Fetches and logs weather data for specified locations using an external API like
 - [Usage](#usage)
 
 ## Installation
-To install the required dependencies, run the following command:
+To install the required dependencies, run the following commands:
     <br>1. git clone https://github.com/MohammadKhGh99/Training-Program-for-Python-App-Development-with-AWS.git
     <br>2. cd Training-Program-for-Python-App-Development-with-AWS
     <br>3. pip install -r requirements.txt
