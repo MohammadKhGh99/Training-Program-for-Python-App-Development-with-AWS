@@ -14,11 +14,11 @@ Fetches and logs weather data for specified locations using an external API like
 
 ## Installation
 To install the required dependencies, run the following command:
-    git clone https://github.com/MohammadKhGh99/Training-Program-for-Python-App-Development-with-AWS.git
-    cd Training-Program-for-Python-App-Development-with-AWS
-    pip install -r requirements.txt
-    python app.py
-    go to a browser to URL "http://127.0.0.1:5000"
+    <br>git clone https://github.com/MohammadKhGh99/Training-Program-for-Python-App-Development-with-AWS.git
+    <br>cd Training-Program-for-Python-App-Development-with-AWS
+    <br>pip install -r requirements.txt
+    <br>python app.py
+    <br>go to a browser to URL "http://127.0.0.1:5000"
 
 
 ## Usage
