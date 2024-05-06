@@ -27,8 +27,6 @@ def home():
         location = request.form["location"]
         # get the data of weather for the given location
         data = get_weather_data(location)
-        # log the data into csv file
-        log_data(data)
         # precess the data and divide the data into variables
         current, hourly_df, daily_df, daily_days, weekday, cur_date = (
             process_data(data))
@@ -72,11 +70,6 @@ def get_weather_data(location):
     response = requests.get(weather_url)
     data = response.json()
     return data
-
-
-def log_data(data):
-    df = pd.DataFrame([data])
-    df.to_csv("weather_data.csv", mode="a", header=False)
 
 
 def process_data(data):
