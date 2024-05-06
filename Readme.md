@@ -21,3 +21,5 @@ To install the required dependencies, run the following commands:
 To run the app, write this command:
     <br>1. python app.py
     <br>2. go to a browser to URL "http://127.0.0.1:5000"
+    <br>3. write the wanted location in "Enter Location" box
+    <br>4. click "Check Weather"
